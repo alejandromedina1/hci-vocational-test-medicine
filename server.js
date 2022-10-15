@@ -1,7 +1,7 @@
 const express = require('express')
 const { Server } = require('socket.io')
 const PORT = 8080;
-const SERVER_IP = '192.168.1.2' //Use PC's IP
+const SERVER_IP = '192.168.1.29' //Use PC's IP
 
 const expressApp = express ();
 expressApp.use(express.json())
