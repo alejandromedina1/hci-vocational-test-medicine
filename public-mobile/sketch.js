@@ -1,223 +1,453 @@
-class Button {
-
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.d = 50;
-    this.pressed = false;
-  }
-
-  show() {
-    circle(this.x, this.y, this.d);
-  }
-
-  click() {
-    return dist(mouseX, mouseY, this.x, this.y) < 25;
-  }
-}
-
-const NGROK = `https://${window.location.hostname}`
+/*const NGROK = `https://${window.location.hostname}`
 console.log('Server IP: ', NGROK)
-const DNS = getDNS
 let socket = io(NGROK, {
   path: '/real-time'
-})
+})*/
 
 nP = navigator.platform;
 if (nP == "iPad" || nP == "iPhone" || nP == "iPod" || nP == "iPhone Simulator" || nP == "iPad Simulator") {
-  $('select option[disabled]').remove();
+    $('select option[disabled]').remove();
 }
 
-const A = {
-  x: 200,
-  y: 200
-}
+let screens = []
+let currentScreenIndex;
+let interface = 'HOME'
 
-const B = {
-  x: 500,
-  y: 600
-}
+let buttonImages = []
+let HOME_BUTTON;
+let INTRUCTIONS_BUTTON;
 
-let startInteraction = false;
-let nearestPoint = {}
-let points = [];
-let m = 0;
-let p = 0;
-let y = 0;
+let toolsImages = []
+let scalpel;
+let needle;
+let tweezers;
 
-let xMin = 0;
-let xMax = 0;
+let nearestPoint = {};
+let points = []
+let userPoints = []
 
-let screen = 0;
-let play; // El botón para empezar (círculo)
-let startLevel1 = false;
-let referencePointsLevel1 = [];
+let xMax;
 
-let vitalSigns;
-let sound = false;
-
-
-function compare() {
-  if (A.x <= B.x) {
-    xMin = A.x
-    xMax = B.x
-  }
-  if (A.x > B.x) {
-    xMin = B.x
-    xMax = A.x
-  }
-}
-
-function calculateAllPoints() {
-  m = (B.y - A.y) / (B.x - A.x);
-  p = B.y - (m * B.x);
-  for (let x = xMin; x <= xMax; x++) {
-    y = m * x + p;
-    let point = {}
-    point['x'] = x;
-    point['y'] = y;
-    points.push(point);
-  }
-  console.log(points);
-}
-
-function findCloserPoint() {
-  xPrev = xMin
-  yPrev = m * xPrev + p;
-  points.forEach(point => {
-    if (dist(mouseX, mouseY, point.x, point.y) < dist(mouseX, mouseY, xPrev, yPrev)) {
-      xPrev = point.x
-      yPrev = point.y
-    }
-  });
-  nearestPoint = {
-    x: xPrev,
-    y: yPrev
-  }
-
-  return nearestPoint;
-}
-
-function referencePoints() {
-
-  let point = findCloserPoint();
-
-  referencePointsLevel1.push(point);
-}
-
-function validatePrecision() {
-  if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) <= 10 && mouseIsPressed && startInteraction) {
-    console.log('BUEN PULSO CRACK!')
-  }
-  if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) > 10 && mouseIsPressed && startInteraction) {
-    console.log('NO SIRVES PARA CIRUJANO')
-  }
-  socket.emit('coords', nearestPoint);
-}
-
-function endLevel() {
-
-  if (nearestPoint.x >= xMax - 10 && referencePointsLevel1.length >= points.length) {
-    console.log('holi')
-    screen++;
-  }
-}
+let vitalSignsSong;
+let vitalSignsSongIsPlaying = false;
 
 function preload() {
-  vitalSigns = loadSound("./sounds/signos.mp3");
+    currentScreenIndex = 0;
+
+    screens.push(loadImage(`./assets/screens/home.png`))
+    screens.push(loadImage(`./assets/screens/instructions.png`))
+
+    for (let i = 0; i < 3; i++) {
+        screens.push(loadImage(`./assets/screens/level1-${i+1}.png`))
+    }
+    for (let i = 0; i < 3; i++) {
+        screens.push(loadImage(`./assets/screens/level2-${i+1}.png`))
+    }
+    for (let i = 0; i < 3; i++) {
+        screens.push(loadImage(`./assets/screens/level3-${i+1}.png`))
+    }
+
+    buttonImages.push(loadImage(`./assets/screenButtons/home.png`))
+    buttonImages.push(loadImage(`./assets/screenButtons/instructions.png`))
+
+    toolsImages.push(loadImage(`./assets/elements/scalpel.png`))
+    toolsImages.push(loadImage(`./assets/elements/needle.png`))
+    toolsImages.push(loadImage(`./assets/elements/tweezers.png`))
+
+
+    //vitalSignsSong = loadSound("./assets/soundFile/signos.wav");
 
 }
 
 function setup() {
-  canvas = createCanvas(windowWidth, windowHeight)
-  canvas.style('z-index', '-1');
-  canvas.style('position', 'fixed');
-  canvas.style('top', '0');
-  canvas.style('right', '0');
-  background(255);
+    canvas = createCanvas(windowWidth, windowHeight)
+    canvas.style('z-index', '-1')
+    canvas.style('position', 'fixed')
+    canvas.style('top', '0')
+    canvas.style('right', '0')
+    background(255)
 
-  play = new Button(100, 100);
+    HOME_BUTTON = new Button({
+        x: windowWidth / 2,
+        y: windowHeight / 10 * 9,
+        width: 120,
+        height: 60,
+        image: buttonImages[0]
+    });
+
+    INTRUCTIONS_BUTTON = new Button({
+        x: windowWidth / 4 * 3,
+        y: windowHeight / 10 * 9,
+        width: 120,
+        height: 60,
+        image: buttonImages[1]
+    });
+
+    scalpel = new Scalpel({
+        x: windowWidth / 9 * 2,
+        y: windowHeight / 10 * 8.5,
+        width: 50,
+        height: 80,
+        image: toolsImages[0]
+    })
+
+    needle = new Needle({
+        x: windowWidth / 9 * 4.5,
+        y: windowHeight / 10 * 8.5,
+        width: 80,
+        height: 80,
+        image: toolsImages[1]
+    })
+
+    tweezers = new Tweezers({
+        x: windowWidth / 9 * 7,
+        y: windowHeight / 10 * 8.5,
+        width: 100,
+        height: 100,
+        image: toolsImages[2]
+    })
 }
+
+function saveUserPoints () {
+    if (mouseIsPressed && dist(mouseX, mouseY, windowWidth /2, windowHeight / 2) < windowHeight / 2) {
+        let point = {
+            x: mouseX,
+            y: mouseY
+        }
+        userPoints.push(point);
+    }
+}
+
+function endLevel(pointA, pointB, newInterface) {
+    let xMax;
+    if (pointA.x > pointB.x) {
+        xMax = pointA.x
+    } else {
+        xMax = pointB.x
+    }
+
+    if (nearestPoint.x >= xMax - 10 && userPoints.length >= points.length) {
+      console.log('holi')
+      interface = newInterface;
+    }
+  }
 
 function draw() {
-  //background(220);
-
-  console.log(screen);
-  switch (screen) {
-    case 0:
-      fill(250);
-      play.show();
-
-      if (play.pressed) {
-        screen++;
-        play.pressed = false;
-      }
-
-      break;
-
-    case 1:
-      // console.log(nearestPoint.x, A.x, nearestPoint.y, A.y )
-      fill(250);
-      // rect(0, 0, windowWidth, windowHeight);
-
-      stroke(0)
-      line(A.x, A.y, B.x, B.y);
-      if (startLevel1) {
-        validatePrecision();
-      }
-      endLevel();
-
-      console.log(nearestPoint.x, xMax);
-      break;
-
-    case 2:
-      rect(0, 0, 100, 100);
-  }
-
-
+    image(screens[currentScreenIndex], 0, 0, windowWidth, windowHeight)
+    showInterface()
 }
 
-// function mousePressed() {
-//   if (dist(mouseX, mouseY, 100, 100) < 25) {
-//       compare();
-//       calculateAllPoints();
-//       startInteraction = true;
-//   }
-// }
+function touchStarted() {
+    changeScreen()
+    itemsSelection()
+    closure()
+}
+
+function mouseRelease() {
+    
+}
 
 function touchMoved() {
+    switch (interface) {
+        case 'LEVEL 1: CUT':
+            scalpel.showTrace()
+            scalpel.catched();
+            //findCloserPoint();
+            break;
+        case 'LEVEL 2: CUT':
+            scalpel.showTrace()
+            //findCloserPoint();
+            break;
+        case 'LEVEL 3: CUT':
+            scalpel.showTrace()
+            //findCloserPoint();
+            break;
+    }
+}
 
-  switch (screen) {
-    case 0:
-      if (play.click() === true) {
-        play.pressed = true;
-        compare();
-        calculateAllPoints();
-        startInteraction = true;
-      }
+function itemsSelection () {
+    switch (interface) {
+        case 'LEVEL 1: CUT':
+            scalpel.selected();
+            break;
+        case 'LEVEL 1: EXTRACT':
+            tweezers.selected();
+            break;
+        case 'LEVEL 1: CLOSURE':
+            needle.selected();
+            break;
+        case 'LEVEL 2: CUT':
+            scalpel.selected();
+            break;
+        case 'LEVEL 2: EXTRACT':
+            tweezers.selected();
+            break;
+        case 'LEVEL 2: CLOSURE':
+            needle.selected();
+            break;
+        case 'LEVEL 3: CUT':
+            scalpel.selected();
+            break;
+        case 'LEVEL 3: EXTRACT':
+            tweezers.selected();
+            break;
+        case 'LEVEL 3: CLOSURE':
+            needle.selected();
+            break;
+    }
+}
 
+function itemsRelease() {
+    scalpel.released();
+    tweezers.released()
+}
 
-      break;
-
-    case 1:
-      findCloserPoint();
-      referencePoints();
-      if (nearestPoint.x === A.x && nearestPoint.y === A.y) {
-        startLevel1 = true;
-      }
-
-      if (startLevel1) {
-        stroke(255, 0, 255)
-        fill(255, 0, 255)
-        line(mouseX, mouseY, pmouseX, pmouseY);
-      }
-      // eso del start level no está funcionando, porque pinta la línea incluso sin que haya tocado el inicio de la línea
-
-      break;
-  }
-
+function closure() {
+    switch (interface) {
+        case 'LEVEL 1: CLOSURE':
+            needle.clickPoints(points);
+            needle.joinPoints(points)
+            break;
+        case 'LEVEL 2: CLOSURE':
+            needle.clickPoints(points);
+            needle.joinPoints(points)
+            break;
+        case 'LEVEL 3: CLOSURE':
+            needle.clickPoints(points);
+            needle.joinPoints(points)
+            break;
+    }
 }
 
 function touchEnded() {
+    clear()
+}
 
+
+function showInterface() {
+    switch (interface) {
+        case 'HOME':
+            currentScreenIndex = 0;
+            HOME_BUTTON.show();
+            break;
+        case 'INSTRUCTIONS':
+            currentScreenIndex = 1;
+            INTRUCTIONS_BUTTON.show()
+            break;
+        case 'LEVEL 1: CUT':
+            currentScreenIndex = 2;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            //scalpel.returnToBoard()
+            saveUserPoints()
+
+            break;
+        case 'LEVEL 1: EXTRACT':
+            currentScreenIndex = 3;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 1: CLOSURE':
+            currentScreenIndex = 4;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 2: CUT':
+            currentScreenIndex = 5;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            saveUserPoints()
+            break;
+        case 'LEVEL 2: EXTRACT':
+            currentScreenIndex = 6;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 2: CLOSURE':
+            currentScreenIndex = 7;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 3: CUT':
+            currentScreenIndex = 8;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            saveUserPoints()
+            break;
+        case 'LEVEL 3: EXTRACT':
+            currentScreenIndex = 9;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 3: CLOSURE':
+            currentScreenIndex = 10;
+            scalpel.show()
+            needle.show()
+            tweezers.show()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+    }
+}
+
+function changeScreen() {
+    switch (interface) {
+        case 'HOME':
+            HOME_BUTTON.pressedButton()
+            if (HOME_BUTTON.isClicked) {
+                interface = 'INSTRUCTIONS'
+            }
+            break;
+        case 'INSTRUCTIONS':
+            INTRUCTIONS_BUTTON.pressedButton()
+            if (INTRUCTIONS_BUTTON.isClicked) {
+                interface = 'LEVEL 1: CUT'
+            }
+            break;
+        case 'LEVEL 1: CUT':
+            scalpel.returnToBoard()
+            scalpel.catched()
+            needle.catched()
+            tweezers.catched()
+            break;
+        case 'LEVEL 1: EXTRACT':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 1: CLOSURE':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 2: CUT':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 2: EXTRACT':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 2: CLOSURE':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 3: CUT':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 3: EXTRACT':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+        case 'LEVEL 3: CLOSURE':
+            scalpel.returnToBoard()
+            needle.returnToBoard()
+            tweezers.returnToBoard()
+            break;
+    }
+}
+
+function createStraightLine(pointA, pointB) { //Al cambiar de pantalla (click)
+    const numberOfPoints = (pointB.y - pointA.x) / pointA.x
+    const m = (pointB.y - pointA.y) / (pointB.x - pointA.x)
+    const b = pointA.y - m * pointA.x
+    const distance = dist(pointA.x, pointA.y, pointB.x, pointB.y)
+    const gap = distance / numberOfPoints
+
+    let xMin;
+
+    if (pointA.x > pointB.x) {
+        xMin = pointB.x
+    } else {
+        xMin = pointA.x
+    }
+
+    let xMax;
+    if (pointA.x > pointB.x) {
+        xMax = pointA.x
+    } else {
+        xMax = pointB.x
+    }
+
+    for (let i = 0; i < numberOfPoints; i++) {
+        let x = xMin + gap * i;
+        let y = m * x + b;
+
+        let point = {
+            x: x,
+            y: y
+        }
+        if (i % distance === 0) {
+            circle(point.x, point.y, 2);
+        }
+
+        points.push(point);
+
+        if (point.x > xMax) {
+            points.splice(points.indexOf(point), 1);
+        }
+
+    }
+
+    console.log(points);
+}
+
+function findCloserPoint() { //Mientras se presiona
+    xPrev = xMin
+    yPrev = m * xPrev + p;
+    points.forEach(point => {
+        if (dist(mouseX, mouseY, point.x, point.y) < dist(mouseX, mouseY, xPrev, yPrev)) {
+            xPrev = point.x
+            yPrev = point.y
+        }
+    });
+    nearestPoint = {
+        x: xPrev,
+        y: yPrev
+    }
+}
+
+function validatePrecision(gap) { //Mientras se presiona
+    if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) <= gap && mouseIsPressed && startInteraction) {
+        console.log('BUEN PULSO CRACK!')
+    }
+    if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) > gap && mouseIsPressed && startInteraction) {
+        console.log('NO SIRVES PARA CIRUJANO')
+    }
 }

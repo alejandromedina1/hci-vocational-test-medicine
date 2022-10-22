@@ -12,9 +12,6 @@
 
 <body>
     <div id="container">
-        <script>
-            const getDNS = "<%= DNS %>"
-        </script>
         <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"
             integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous">
         </script>
@@ -22,13 +19,21 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"
             integrity="sha512-rCZdHNB0AePry6kAnKAVFMRfWPmUXSo+/vlGtrOUvhsxD0Punm/xWbEh+8vppPIOzKB9xnk42yCRZ5MD/jvvjQ=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/addons/p5.sound.js"
             integrity="sha512-TU9AWtV5uUZPX8dbBAH8NQF1tSdigPRRT82vllAQ1Ke28puiqLA6ZVKxtUGlgrH6yWFnkKy+sE6luNEGH9ar0A=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
         <script src="https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js"></script>
 
-
+        <script src="./src/button.js"></script>
+        <script src="./src/extractionElement.js"></script>
+        <script src="./src/extractionElements/appendix.js"></script>
+        <script src="./src/extractionElements/bullet.js"></script>
+        <script src="./src/tool.js"></script>
+        <script src="./src/tools/needle.js"></script>
+        <script src="./src/tools/scalpel.js"></script>
+        <script src="./src/tools/tweezers.js"></script>
         <script src="sketch.js" async defer></script>
     </div>
 </body>
