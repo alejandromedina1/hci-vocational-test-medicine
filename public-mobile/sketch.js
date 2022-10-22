@@ -25,11 +25,19 @@ let tweezers;
 let nearestPoint = {};
 let points = []
 let userPoints = []
+let matrix = []
+let deviationArray = [];
 
 let xMax;
+let xMin;
 
 let vitalSignsSong;
 let vitalSignsSongIsPlaying = false;
+
+let point = function (x, y) {
+    this.x = x,
+        this.y = y
+}
 
 function preload() {
     currentScreenIndex = 0;
@@ -108,8 +116,8 @@ function setup() {
     })
 }
 
-function saveUserPoints () {
-    if (mouseIsPressed && dist(mouseX, mouseY, windowWidth /2, windowHeight / 2) < windowHeight / 2) {
+function saveUserPoints() {
+    if (mouseIsPressed && dist(mouseX, mouseY, windowWidth / 2, windowHeight / 2) < windowHeight / 2) {
         let point = {
             x: mouseX,
             y: mouseY
@@ -125,12 +133,14 @@ function endLevel(pointA, pointB, newInterface) {
     } else {
         xMax = pointB.x
     }
+    console.log(nearestPoint.x, xMax)
+
 
     if (nearestPoint.x >= xMax - 10 && userPoints.length >= points.length) {
-      console.log('holi')
-      interface = newInterface;
+        console.log('holi')
+        interface = newInterface;
     }
-  }
+}
 
 function draw() {
     image(screens[currentScreenIndex], 0, 0, windowWidth, windowHeight)
@@ -144,7 +154,7 @@ function touchStarted() {
 }
 
 function mouseRelease() {
-    
+
 }
 
 function touchMoved() {
@@ -152,11 +162,13 @@ function touchMoved() {
         case 'LEVEL 1: CUT':
             scalpel.showTrace()
             scalpel.catched();
-            //findCloserPoint();
+            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
+            let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
+            findCloserPoint(pointA, pointB);
             break;
         case 'LEVEL 2: CUT':
             scalpel.showTrace()
-            //findCloserPoint();
+            findCloserPoint();
             break;
         case 'LEVEL 3: CUT':
             scalpel.showTrace()
@@ -165,7 +177,7 @@ function touchMoved() {
     }
 }
 
-function itemsSelection () {
+function itemsSelection() {
     switch (interface) {
         case 'LEVEL 1: CUT':
             scalpel.selected();
@@ -223,7 +235,6 @@ function touchEnded() {
     clear()
 }
 
-
 function showInterface() {
     switch (interface) {
         case 'HOME':
@@ -241,6 +252,8 @@ function showInterface() {
             tweezers.show()
             //scalpel.returnToBoard()
             saveUserPoints()
+
+            showStraightLine(points);
 
             break;
         case 'LEVEL 1: EXTRACT':
@@ -332,6 +345,12 @@ function changeScreen() {
             INTRUCTIONS_BUTTON.pressedButton()
             if (INTRUCTIONS_BUTTON.isClicked) {
                 interface = 'LEVEL 1: CUT'
+
+                let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
+                let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
+                xMin = createStraightLine(pointA, pointB);
+
+
             }
             break;
         case 'LEVEL 1: CUT':
@@ -339,6 +358,9 @@ function changeScreen() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
+            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
+            let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
+            endLevel(pointA, pointB, 'LEVEL 1: EXTRACT')
             break;
         case 'LEVEL 1: EXTRACT':
             scalpel.returnToBoard()
@@ -383,6 +405,16 @@ function changeScreen() {
     }
 }
 
+function showStraightLine(points) { //Al cambiar de pantalla (click)
+
+    points.forEach((point) => {
+
+        circle(point.x, point.y, 2);
+
+
+    });
+}
+
 function createStraightLine(pointA, pointB) { //Al cambiar de pantalla (click)
     const numberOfPoints = (pointB.y - pointA.x) / pointA.x
     const m = (pointB.y - pointA.y) / (pointB.x - pointA.x)
@@ -413,24 +445,27 @@ function createStraightLine(pointA, pointB) { //Al cambiar de pantalla (click)
             x: x,
             y: y
         }
-        if (i % distance === 0) {
-            circle(point.x, point.y, 2);
-        }
-
         points.push(point);
 
-        if (point.x > xMax) {
-            points.splice(points.indexOf(point), 1);
-        }
-
     }
-
+    points.push(pointB);
     console.log(points);
+    return xMin
 }
 
-function findCloserPoint() { //Mientras se presiona
-    xPrev = xMin
-    yPrev = m * xPrev + p;
+function findCloserPoint(pointA, pointB) { //Mientras se presiona
+    let xMin;
+
+    if (pointA.x > pointB.x) {
+        xMin = pointB.x
+    } else {
+        xMin = pointA.x
+    }
+    const m = (pointB.y - pointA.y) / (pointB.x - pointA.x)
+    const p = pointB.y - (m * pointB.x);
+    let xPrev = xMin;
+    let yPrev = m * xPrev + p;
+    
     points.forEach(point => {
         if (dist(mouseX, mouseY, point.x, point.y) < dist(mouseX, mouseY, xPrev, yPrev)) {
             xPrev = point.x
@@ -450,4 +485,22 @@ function validatePrecision(gap) { //Mientras se presiona
     if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) > gap && mouseIsPressed && startInteraction) {
         console.log('NO SIRVES PARA CIRUJANO')
     }
+}
+
+function getDeviation(points) {
+    let deviation;
+    let finalPoint = points.length
+
+    deviation = dist(nearestPoint.x, nearestPoint.y, mouseX, mouseY) / dist(points[0].x, points[0].y, points[finalPoint - 1].x, points[finalPoint - 1].y);
+    matrix.push(deviation);
+}
+
+function deviationMedia(matrix) {
+    let media;
+    matrix.forEach(element => {
+        media += element;
+    });
+    media = media / matrix.length;
+
+    deviationArray.push(media);
 }
