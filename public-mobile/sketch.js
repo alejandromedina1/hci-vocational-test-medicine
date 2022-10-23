@@ -9,25 +9,27 @@ if (nP == "iPad" || nP == "iPhone" || nP == "iPod" || nP == "iPhone Simulator" |
     $('select option[disabled]').remove();
 }
 
-let screens = []
+let screens = [];
 let currentScreenIndex;
-let interface = 'HOME'
+let interface = 'LEVEL 1: EXTRACT';
 
-let buttonImages = []
+let buttonImages = [];
 let HOME_BUTTON;
 let INTRUCTIONS_BUTTON;
 
-let toolsImages = []
+let toolsImages = [];
 let scalpel;
 let needle;
 let tweezers;
 
-let extractionElementsImages = []
+let extractionElementsImages = [];
 let bullet;
 
 let nearestPoint = {};
-let points = []
+let points = [];
 let userPoints = []
+let pointsGame = [];
+let suturePoints = [];
 
 let matrix = []
 let deviationArray = [];
@@ -40,9 +42,10 @@ let vitalSignsSongIsPlaying = false;
 
 let point = function (x, y) {
     this.x = x,
-        this.y = y
+        this.y = y,
+        this.click = false;
 }
-let pointsGame = [];
+
 
 function preload() {
     currentScreenIndex = 0;
@@ -160,13 +163,13 @@ function endLevel(pointA, pointB, newInterface) {
 function draw() {
     image(screens[currentScreenIndex], 0, 0, windowWidth, windowHeight)
     showInterface()
-    console.log(mouseX, mouseY, windowWidth, windowHeight)
+    closure()
+
 }
 
 function touchStarted() {
     changeScreen()
     itemsSelection()
-    closure()
 }
 
 function mouseRelease() {
@@ -189,11 +192,37 @@ function touchMoved() {
                 bullet.y = mouseY;
             }
 
-            if (dist( bullet.x, bullet.y, windowWidth / 2,
-                windowHeight / 11 * 5) > 200) {
-                    bullet = undefined;
-                    interface = 'LEVEL 1: CLOSURE'
-                    
+            if (dist(bullet.x, bullet.y, windowWidth / 2,
+                    windowHeight / 11 * 5) > 200) {
+                bullet = undefined;
+                interface = 'LEVEL 1: CLOSURE'
+
+            }
+            break;
+
+        case 'LEVEL 1: CLOSURE':
+            if (suturePoints[suturePoints.length - 1].click) {
+                interface = 'LEVEL 2: CUT';
+
+                let pointA = new point((windowWidth / 9) * 2, (windowHeight / 21) * 11);
+                let pointB = new point((windowWidth / 9) * 3, (windowHeight / 35) * 18);
+                let pointC = new point((windowWidth / 9) * 4, (windowHeight / 91) * 45);
+                let pointD = new point((windowWidth / 9) * 5, (windowHeight / 21) * 10);
+                let pointE = new point((windowWidth / 9) * 6, (windowHeight / 9) * 4);
+                let pointF = new point((windowWidth / 9) * 7, (windowHeight / 5) * 2);
+
+                pointsGame.push(pointA);
+                pointsGame.push(pointB);
+                pointsGame.push(pointC);
+                pointsGame.push(pointD);
+                pointsGame.push(pointE);
+                pointsGame.push(pointF);
+
+                xMin = createStraightLine(pointsGame[0], pointsGame[1]);
+                createStraightLine(pointsGame[1], pointsGame[2]);
+                createStraightLine(pointsGame[2], pointsGame[3]);
+                createStraightLine(pointsGame[3], pointsGame[4]);
+                createStraightLine(pointsGame[4], pointsGame[5]);
             }
             break;
         case 'LEVEL 2: CUT':
@@ -252,8 +281,7 @@ function closure() {
     switch (interface) {
         case 'LEVEL 1: CLOSURE':
             if (needle.isCatched) {
-                needle.clickPoints(points);
-                needle.joinPoints(points)
+                needle.clickPoints(suturePoints);
             }
             break;
         case 'LEVEL 2: CLOSURE':
@@ -315,6 +343,7 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
+            needle.joinPoints(suturePoints)
             break;
         case 'LEVEL 2: CUT':
             currentScreenIndex = 5;
@@ -410,65 +439,44 @@ function changeScreen() {
             scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)
             points = [];
             console.log(points)
+
+            let pointA = new point((windowWidth / 13) * 4, (windowHeight / 9) * 4);
+            let pointB = new point((windowWidth / 13) * 5.15, (windowHeight / 9) * 4.3);
+            let pointC = new point((windowWidth / 13) * 6.35, (windowHeight / 9) * 4);
+            let pointD = new point((windowWidth / 13) * 7.55, (windowHeight / 9) * 4.3);
+            let pointE = new point((windowWidth / 13) * 8.75, (windowHeight / 9) * 4);
+            suturePoints.push(pointA);
+            suturePoints.push(pointB);
+            suturePoints.push(pointC);
+            suturePoints.push(pointD);
+            suturePoints.push(pointE);
+
             break;
         case 'LEVEL 1: CLOSURE':
             tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             needle.catched()
 
-            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 21) * 11);
-            let pointB = new point((windowWidth / 9) * 3, (windowHeight / 35) * 18);
-            let pointC = new point((windowWidth / 9) * 4, (windowHeight / 91) * 45);
-            let pointD = new point((windowWidth / 9) * 5, (windowHeight / 21) * 10);
-            let pointE = new point((windowWidth / 9) * 6, (windowHeight / 9) * 4);
-            let pointF = new point((windowWidth / 9) * 7, (windowHeight / 5) * 2);
+            console.log(suturePoints)
 
-            pointsGame.push(pointA);
-            pointsGame.push(pointB);
-            pointsGame.push(pointC);
-            pointsGame.push(pointD);
-            pointsGame.push(pointE);
-            pointsGame.push(pointF);
-
-            xMin = createStraightLine(pointsGame[0], pointsGame[1]);
-            createStraightLine(pointsGame[1], pointsGame[2]);
-            createStraightLine(pointsGame[2], pointsGame[3]);
-            createStraightLine(pointsGame[3], pointsGame[4]);
-            createStraightLine(pointsGame[4], pointsGame[5]);
-
-            /*if (mouseX > 0) {
-                interface = 'LEVEL 2: CUT';
-            }*/
 
             break;
         case 'LEVEL 2: CUT':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5,)
             break;
         case 'LEVEL 2: EXTRACT':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)         
             break;
         case 'LEVEL 2: CLOSURE':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             break;
         case 'LEVEL 3: CUT':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5,)
             break;
         case 'LEVEL 3: EXTRACT':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5) 
             break;
         case 'LEVEL 3: CLOSURE':
-            scalpel.returnToBoard()
-            needle.returnToBoard()
-            tweezers.returnToBoard()
+            tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             break;
     }
 }

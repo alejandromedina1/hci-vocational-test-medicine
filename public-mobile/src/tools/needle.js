@@ -16,9 +16,16 @@ class Needle extends Tool {
     this.isCatched = false;
   }
 
+  showPoints(points) {
+    points.forEach(point => {
+      fill(200, 180, 180);
+      circle(point.x, point.y, 10);
+    });
+  }
+
   clickPoints(pointsArray) {
-    pointsArray.forEach((point, i) => {
-      if (dist(point.x, point.y, mouseX, mouseY) < 10) {
+    pointsArray.forEach((point) => {
+      if (dist(point.x, point.y, mouseX, mouseY) < 5) {
         point.click = true;
       }
     });
@@ -27,8 +34,9 @@ class Needle extends Tool {
   joinPoints(pointsArray) {
     pointsArray.forEach((point, i) => {
       if (i <= 3) {
-        if (point.click && points[i + 1].click) {
-          line(point.x, point.y, points[i + 1].x, points[i + 1].y);
+        if (point.click && pointsArray[i + 1].click) {
+          fill(10,10,180);
+          line(point.x, point.y, pointsArray[i + 1].x, pointsArray[i + 1].y);
         }
       }
     });
