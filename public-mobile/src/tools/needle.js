@@ -14,13 +14,11 @@ class Needle extends Tool {
     this.height = height;
     this.image = image
     this.isCatched = false;
-    this.initX = this.x;
-    this.initY = this.y;
   }
 
   clickPoints(pointsArray) {
     pointsArray.forEach((point, i) => {
-      if (dist(point.x, point.y, mouseX, mouseY) < d / 2) {
+      if (dist(point.x, point.y, mouseX, mouseY) < 10) {
         point.click = true;
       }
     });

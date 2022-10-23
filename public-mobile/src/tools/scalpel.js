@@ -14,8 +14,6 @@ class Scalpel extends Tool {
         this.height = height;
         this.image = image
         this.isCatched = false;
-        this.initX = this.x;
-        this.initY = this.y;
     }
 
     showTrace() {

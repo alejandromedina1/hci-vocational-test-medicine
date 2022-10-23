@@ -27,11 +27,10 @@ class Tool {
         }
     }
 
-    returnToBoard() {
-        if (!this.isCatched) {
-            this.x = this.initX
-            this.y = this.initY
-        }
+    returnToBoard(initX, initY) {
+            this.x = initX
+            this.y = initY
+            this.isCatched = false;
     }
 
     released() {
