@@ -446,7 +446,7 @@ function showStraightLine(points) { //Al cambiar de pantalla (click)
 
     points.forEach((point) => {
 
-        circle(point.x, point.y, 6);
+        circle(point.x, point.y, 2);
 
 
     });
