@@ -11,7 +11,7 @@ if (nP == "iPad" || nP == "iPhone" || nP == "iPod" || nP == "iPhone Simulator" |
 
 let screens = []
 let currentScreenIndex;
-let interface = 'HOME'
+let interface = 'LEVEL 1: CLOSURE'
 
 let buttonImages = []
 let HOME_BUTTON;
@@ -25,6 +25,7 @@ let tweezers;
 let nearestPoint = {};
 let points = []
 let userPoints = []
+
 let matrix = []
 let deviationArray = [];
 
@@ -38,6 +39,7 @@ let point = function (x, y) {
     this.x = x,
         this.y = y
 }
+let pointsGame = [];
 
 function preload() {
     currentScreenIndex = 0;
@@ -145,6 +147,7 @@ function endLevel(pointA, pointB, newInterface) {
 function draw() {
     image(screens[currentScreenIndex], 0, 0, windowWidth, windowHeight)
     showInterface()
+    console.log(mouseX, mouseY, windowWidth, windowHeight)
 }
 
 function touchStarted() {
@@ -162,13 +165,18 @@ function touchMoved() {
         case 'LEVEL 1: CUT':
             scalpel.showTrace()
             scalpel.catched();
-            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
-            let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
-            findCloserPoint(pointA, pointB);
+            findCloserPoint(pointsGame[0], pointsGame[1]);
+            if (scalpel.isCatched) {
+                endLevel(pointsGame[0], pointsGame[1], 'LEVEL 1: EXTRACT')
+            }
             break;
         case 'LEVEL 2: CUT':
             scalpel.showTrace()
-            findCloserPoint();
+
+            findCloserPoint(pointsGame[0], pointsGame[1]);
+            if (scalpel.isCatched) {
+                endLevel(pointsGame[4], pointsGame[5], 'LEVEL 2: EXTRACT')
+            }
             break;
         case 'LEVEL 3: CUT':
             scalpel.showTrace()
@@ -251,8 +259,9 @@ function showInterface() {
             needle.show()
             tweezers.show()
             //scalpel.returnToBoard()
-            saveUserPoints()
-
+            if (scalpel.isCatched) {
+                saveUserPoints()
+            }
             showStraightLine(points);
 
             break;
@@ -282,7 +291,12 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
-            saveUserPoints()
+
+            if (scalpel.isCatched) {
+                saveUserPoints()
+            }
+            showStraightLine(points);
+
             break;
         case 'LEVEL 2: EXTRACT':
             currentScreenIndex = 6;
@@ -344,13 +358,12 @@ function changeScreen() {
         case 'INSTRUCTIONS':
             INTRUCTIONS_BUTTON.pressedButton()
             if (INTRUCTIONS_BUTTON.isClicked) {
-                interface = 'LEVEL 1: CUT'
-
+                interface = 'LEVEL 1: CUT';
                 let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
                 let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
-                xMin = createStraightLine(pointA, pointB);
-
-
+                pointsGame.push(pointA);
+                pointsGame.push(pointB);
+                xMin = createStraightLine(pointsGame[0], pointsGame[1]);
             }
             break;
         case 'LEVEL 1: CUT':
@@ -358,19 +371,43 @@ function changeScreen() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
-            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5);
-            let pointB = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5);
-            endLevel(pointA, pointB, 'LEVEL 1: EXTRACT')
             break;
         case 'LEVEL 1: EXTRACT':
             scalpel.returnToBoard()
             needle.returnToBoard()
             tweezers.returnToBoard()
+            points = [];
+            console.log(points)
             break;
         case 'LEVEL 1: CLOSURE':
             scalpel.returnToBoard()
             needle.returnToBoard()
             tweezers.returnToBoard()
+
+            let pointA = new point((windowWidth / 9) * 2, (windowHeight / 21) * 11);
+            let pointB = new point((windowWidth / 9) * 3, (windowHeight / 35) * 18);
+            let pointC = new point((windowWidth / 9) * 4, (windowHeight / 91) * 45);
+            let pointD = new point((windowWidth / 9) * 5, (windowHeight / 21) * 10);
+            let pointE = new point((windowWidth / 9) * 6, (windowHeight / 9) * 4);
+            let pointF = new point((windowWidth / 9) * 7, (windowHeight / 5) * 2);
+
+            pointsGame.push(pointA);
+            pointsGame.push(pointB);
+            pointsGame.push(pointC);
+            pointsGame.push(pointD);
+            pointsGame.push(pointE);
+            pointsGame.push(pointF);
+
+            xMin = createStraightLine(pointsGame[0], pointsGame[1]);
+            createStraightLine(pointsGame[1], pointsGame[2]);
+            createStraightLine(pointsGame[2], pointsGame[3]);
+            createStraightLine(pointsGame[3], pointsGame[4]);
+            createStraightLine(pointsGame[4], pointsGame[5]);
+
+            if(mouseX > 0){
+                interface = 'LEVEL 2: CUT';
+            }
+
             break;
         case 'LEVEL 2: CUT':
             scalpel.returnToBoard()
@@ -409,7 +446,7 @@ function showStraightLine(points) { //Al cambiar de pantalla (click)
 
     points.forEach((point) => {
 
-        circle(point.x, point.y, 2);
+        circle(point.x, point.y, 6);
 
 
     });
@@ -465,7 +502,7 @@ function findCloserPoint(pointA, pointB) { //Mientras se presiona
     const p = pointB.y - (m * pointB.x);
     let xPrev = xMin;
     let yPrev = m * xPrev + p;
-    
+
     points.forEach(point => {
         if (dist(mouseX, mouseY, point.x, point.y) < dist(mouseX, mouseY, xPrev, yPrev)) {
             xPrev = point.x
