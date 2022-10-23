@@ -24,6 +24,7 @@ let tweezers;
 
 let extractionElementsImages = [];
 let bullet;
+let appendix;
 
 let nearestPoint = {};
 let points = [];
@@ -71,6 +72,7 @@ function preload() {
     toolsImages.push(loadImage(`./assets/elements/tweezers.png`))
 
     extractionElementsImages.push(loadImage(`./assets/elements/bullet.png`))
+    extractionElementsImages.push(loadImage(`./assets/elements/appendix.png`))
 
 
     //vitalSignsSong = loadSound("./assets/soundFile/signos.wav");
@@ -131,6 +133,13 @@ function setup() {
         width: 80,
         height: 50,
         image: extractionElementsImages[0]
+    })
+    appendix = new Appendix({
+        x: windowWidth / 7 * 5,
+        y: windowHeight / 13 * 7.5,
+        width: 50,
+        height: 30,
+        image: extractionElementsImages[1]
     })
 }
 
@@ -231,6 +240,18 @@ function touchMoved() {
             findCloserPoint(pointsGame[0], pointsGame[1]);
             if (scalpel.isCatched) {
                 endLevel(pointsGame[4], pointsGame[5], 'LEVEL 2: EXTRACT')
+            }
+            break;
+            case 'LEVEL 2: EXTRACT':
+            if (dist(tweezers.x, tweezers.y, appendix.x, appendix.y) < 50) {
+                appendix.x = mouseX;
+                appendix.y = mouseY;
+            }
+
+            if (dist(appendix.x, appendix.y, windowWidth / 2,
+                    windowHeight / 11 * 5) > 300) {
+                appendix = undefined;
+                interface = 'LEVEL 2: CLOSURE'
             }
             break;
         case 'LEVEL 3: CUT':
@@ -368,6 +389,7 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
+            appendix.show();
             break;
         case 'LEVEL 2: CLOSURE':
             currentScreenIndex = 7;
@@ -461,19 +483,19 @@ function changeScreen() {
 
             break;
         case 'LEVEL 2: CUT':
-            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5,)
+            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5, )
             break;
         case 'LEVEL 2: EXTRACT':
-            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)         
+            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)
             break;
         case 'LEVEL 2: CLOSURE':
             tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             break;
         case 'LEVEL 3: CUT':
-            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5,)
+            needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5, )
             break;
         case 'LEVEL 3: EXTRACT':
-            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5) 
+            scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)
             break;
         case 'LEVEL 3: CLOSURE':
             tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
