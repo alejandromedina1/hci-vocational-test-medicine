@@ -11,7 +11,7 @@ if (nP == "iPad" || nP == "iPhone" || nP == "iPod" || nP == "iPhone Simulator" |
 
 let screens = [];
 let currentScreenIndex;
-let interface = 'LEVEL 1: EXTRACT';
+let interface = 'HOME';
 
 let buttonImages = [];
 let HOME_BUTTON;
@@ -41,6 +41,13 @@ let xMin;
 let vitalSignsSong;
 let vitalSignsSongIsPlaying = false;
 
+let time = 30;
+let counter = 30;
+let timeLevel = [];
+let counterTime = 0;
+let score = 0;
+let finalGame = false;
+
 let point = function (x, y) {
     this.x = x,
         this.y = y,
@@ -54,6 +61,7 @@ function preload() {
     screens.push(loadImage(`./assets/screens/home.png`))
     screens.push(loadImage(`./assets/screens/instructions.png`))
 
+
     for (let i = 0; i < 3; i++) {
         screens.push(loadImage(`./assets/screens/level1-${i+1}.png`))
     }
@@ -63,6 +71,8 @@ function preload() {
     for (let i = 0; i < 3; i++) {
         screens.push(loadImage(`./assets/screens/level3-${i+1}.png`))
     }
+
+    screens.push(loadImage(`./assets/screens/score.png`))
 
     buttonImages.push(loadImage(`./assets/screenButtons/home.png`))
     buttonImages.push(loadImage(`./assets/screenButtons/instructions.png`))
@@ -75,7 +85,7 @@ function preload() {
     extractionElementsImages.push(loadImage(`./assets/elements/appendix.png`))
 
 
-    //vitalSignsSong = loadSound("./assets/soundFile/signos.wav");
+    vitalSignsSong = loadSound("./assets/soundFile/signos.wav");
 
 }
 
@@ -160,11 +170,8 @@ function endLevel(pointA, pointB, newInterface) {
     } else {
         xMax = pointB.x
     }
-    //console.log(nearestPoint.x, xMax)
-
 
     if (nearestPoint.x >= xMax - 10 && userPoints.length >= points.length) {
-        console.log('holi')
         interface = newInterface;
     }
 }
@@ -188,9 +195,9 @@ function mouseRelease() {
 function touchMoved() {
     switch (interface) {
         case 'LEVEL 1: CUT':
-            scalpel.showTrace()
             scalpel.catched();
             findCloserPoint(pointsGame[0], pointsGame[1]);
+
             if (scalpel.isCatched) {
                 endLevel(pointsGame[0], pointsGame[1], 'LEVEL 1: EXTRACT')
             }
@@ -206,11 +213,22 @@ function touchMoved() {
                 bullet = undefined;
                 interface = 'LEVEL 1: CLOSURE'
 
+                let pointA = new point((windowWidth / 13) * 4, (windowHeight / 9) * 4);
+                let pointB = new point((windowWidth / 13) * 5.15, (windowHeight / 9) * 4.3);
+                let pointC = new point((windowWidth / 13) * 6.35, (windowHeight / 9) * 4);
+                let pointD = new point((windowWidth / 13) * 7.55, (windowHeight / 9) * 4.3);
+                let pointE = new point((windowWidth / 13) * 8.75, (windowHeight / 9) * 4);
+                suturePoints.push(pointA);
+                suturePoints.push(pointB);
+                suturePoints.push(pointC);
+                suturePoints.push(pointD);
+                suturePoints.push(pointE);
             }
             break;
 
         case 'LEVEL 1: CLOSURE':
-            if (suturePoints[suturePoints.length - 1].click) {
+
+            if (suturePoints.every((point) => point.click)) {
                 interface = 'LEVEL 2: CUT';
 
                 let pointA = new point((windowWidth / 9) * 2, (windowHeight / 21) * 11);
@@ -235,14 +253,14 @@ function touchMoved() {
             }
             break;
         case 'LEVEL 2: CUT':
-            scalpel.showTrace()
 
-            findCloserPoint(pointsGame[0], pointsGame[1]);
+            findCloserPoint(pointsGame[0], pointsGame[pointsGame.length - 1]);
+
             if (scalpel.isCatched) {
-                endLevel(pointsGame[4], pointsGame[5], 'LEVEL 2: EXTRACT')
+                endLevel(pointsGame[0], pointsGame[pointsGame.length - 1], 'LEVEL 2: EXTRACT')
             }
             break;
-            case 'LEVEL 2: EXTRACT':
+        case 'LEVEL 2: EXTRACT':
             if (dist(tweezers.x, tweezers.y, appendix.x, appendix.y) < 50) {
                 appendix.x = mouseX;
                 appendix.y = mouseY;
@@ -252,11 +270,60 @@ function touchMoved() {
                     windowHeight / 11 * 5) > 300) {
                 appendix = undefined;
                 interface = 'LEVEL 2: CLOSURE'
+
+                let pointA = new point((windowWidth / 7) * 2.13, (windowHeight / 9) * 4.43);
+                let pointB = new point((windowWidth / 7) * 3.15, (windowHeight / 9) * 4.68);
+                let pointC = new point((windowWidth / 7) * 3.38, (windowHeight / 9) * 4.19);
+                let pointD = new point((windowWidth / 7) * 4.67, (windowHeight / 9) * 4.45);
+                let pointE = new point((windowWidth / 7) * 4.85, (windowHeight / 9) * 3.93);
+                suturePoints.push(pointA);
+                suturePoints.push(pointB);
+                suturePoints.push(pointC);
+                suturePoints.push(pointD);
+                suturePoints.push(pointE);
+            }
+            break;
+
+        case 'LEVEL 2: CLOSURE':
+            if (suturePoints.every((point) => point.click)) {
+                interface = 'LEVEL 3: CUT';
+
+                let pointA = new point((windowWidth / 9) * 2, (windowHeight / 11) * 5.12);
+                let pointB = new point((windowWidth / 9) * 2.6, (windowHeight / 11) * 5.37);
+                let pointC = new point((windowWidth / 9) * 3.4, (windowHeight / 11) * 5.58);
+                let pointD = new point((windowWidth / 9) * 4, (windowHeight / 11) * 5.65);
+                let pointE = new point((windowWidth / 9) * 4.6, (windowHeight / 11) * 5.67);
+                let pointF = new point((windowWidth / 9) * 5.2, (windowHeight / 11) * 5.64);
+                let pointG = new point((windowWidth / 9) * 5.6, (windowHeight / 11) * 5.58);
+                let pointH = new point((windowWidth / 9) * 6.4, (windowHeight / 11) * 5.37);
+                let pointI = new point((windowWidth / 9) * 7, (windowHeight / 11) * 5.12);
+
+                pointsGame.push(pointA);
+                pointsGame.push(pointB);
+                pointsGame.push(pointC);
+                pointsGame.push(pointD);
+                pointsGame.push(pointE);
+                pointsGame.push(pointF);
+                pointsGame.push(pointG);
+                pointsGame.push(pointH);
+                pointsGame.push(pointI);
+
+                xMin = createStraightLine(pointsGame[0], pointsGame[1]);
+                createStraightLine(pointsGame[1], pointsGame[2]);
+                createStraightLine(pointsGame[2], pointsGame[3]);
+                createStraightLine(pointsGame[3], pointsGame[4]);
+                createStraightLine(pointsGame[4], pointsGame[5]);
+                createStraightLine(pointsGame[5], pointsGame[6]);
+                createStraightLine(pointsGame[6], pointsGame[7]);
+                createStraightLine(pointsGame[7], pointsGame[8]);
+
             }
             break;
         case 'LEVEL 3: CUT':
-            scalpel.showTrace()
-            //findCloserPoint();
+            findCloserPoint(pointsGame[0], pointsGame[pointsGame.length - 1]);
+            if (scalpel.isCatched) {
+                endLevel(pointsGame[0], pointsGame[pointsGame.length - 1], 'SCORE')
+            }
             break;
     }
 }
@@ -307,14 +374,12 @@ function closure() {
             break;
         case 'LEVEL 2: CLOSURE':
             if (needle.isCatched) {
-                needle.clickPoints(points);
-                needle.joinPoints(points)
+                needle.clickPoints(suturePoints);
             }
             break;
         case 'LEVEL 3: CLOSURE':
             if (needle.isCatched) {
-                needle.clickPoints(points);
-                needle.joinPoints(points)
+                needle.clickPoints(suturePoints);
             }
             break;
     }
@@ -339,14 +404,15 @@ function showInterface() {
             scalpel.show()
             needle.show()
             tweezers.show()
-            //scalpel.returnToBoard()
             if (scalpel.isCatched) {
                 saveUserPoints()
+                scalpel.showTrace(points[0])
+                getDeviation(points);
             }
-            showStraightLine(points);
 
             break;
         case 'LEVEL 1: EXTRACT':
+            countTimeLevel();
             currentScreenIndex = 3;
             scalpel.catched()
             needle.catched()
@@ -357,6 +423,9 @@ function showInterface() {
             bullet.show();
             break;
         case 'LEVEL 1: CLOSURE':
+            if (countTimeLevel === 0) {
+                countTimeLevel();
+            }
             currentScreenIndex = 4;
             scalpel.show()
             needle.show()
@@ -364,6 +433,7 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
+            fill(10, 10, 200);
             needle.joinPoints(suturePoints)
             break;
         case 'LEVEL 2: CUT':
@@ -374,14 +444,16 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
-
             if (scalpel.isCatched) {
                 saveUserPoints()
+                scalpel.showTrace(points[0])
+                getDeviation(points);
             }
-            showStraightLine(points);
-
             break;
         case 'LEVEL 2: EXTRACT':
+            if (countTimeLevel === 0) {
+                countTimeLevel();
+            }
             currentScreenIndex = 6;
             scalpel.show()
             needle.show()
@@ -392,6 +464,9 @@ function showInterface() {
             appendix.show();
             break;
         case 'LEVEL 2: CLOSURE':
+            if (countTimeLevel === 0) {
+                countTimeLevel();
+            }
             currentScreenIndex = 7;
             scalpel.show()
             needle.show()
@@ -399,6 +474,8 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
+            fill(10, 10, 200);
+            needle.joinPoints(suturePoints)
             break;
         case 'LEVEL 3: CUT':
             currentScreenIndex = 8;
@@ -408,25 +485,30 @@ function showInterface() {
             scalpel.catched()
             needle.catched()
             tweezers.catched()
-            saveUserPoints()
+            countDown();
+            if (vitalSignsSongIsPlaying === false) {
+                vitalSignsSong.play();
+                vitalSignsSongIsPlaying = true;
+            } else if (frameCount % 300 === 0) {
+                vitalSignsSongIsPlaying = false;
+            }
+            if (scalpel.isCatched) {
+                saveUserPoints()
+                scalpel.showTrace(points[0])
+                getDeviation(points);
+            }
             break;
-        case 'LEVEL 3: EXTRACT':
-            currentScreenIndex = 9;
-            scalpel.show()
-            needle.show()
-            tweezers.show()
-            scalpel.catched()
-            needle.catched()
-            tweezers.catched()
-            break;
-        case 'LEVEL 3: CLOSURE':
-            currentScreenIndex = 10;
-            scalpel.show()
-            needle.show()
-            tweezers.show()
-            scalpel.catched()
-            needle.catched()
-            tweezers.catched()
+        case 'SCORE':
+            currentScreenIndex = 11;
+            if (finalGame === false) {
+                deviationMedia(matrix);
+                gameResult();
+                finalGame = true;
+            }
+            textSize(40);
+            noStroke();
+            fill(255);
+            text(score, (windowWidth / 9) * 6, (windowHeight / 11) * 3.3);
             break;
     }
 }
@@ -460,38 +542,34 @@ function changeScreen() {
             tweezers.catched()
             scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)
             points = [];
-            console.log(points)
-
-            let pointA = new point((windowWidth / 13) * 4, (windowHeight / 9) * 4);
-            let pointB = new point((windowWidth / 13) * 5.15, (windowHeight / 9) * 4.3);
-            let pointC = new point((windowWidth / 13) * 6.35, (windowHeight / 9) * 4);
-            let pointD = new point((windowWidth / 13) * 7.55, (windowHeight / 9) * 4.3);
-            let pointE = new point((windowWidth / 13) * 8.75, (windowHeight / 9) * 4);
-            suturePoints.push(pointA);
-            suturePoints.push(pointB);
-            suturePoints.push(pointC);
-            suturePoints.push(pointD);
-            suturePoints.push(pointE);
-
+            deviationMedia(matrix);
+            matrix = [];
             break;
         case 'LEVEL 1: CLOSURE':
+            timeLevel.push(counterTime);
+            counterTime = 0;
             tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             needle.catched()
-
-            console.log(suturePoints)
-
-
             break;
         case 'LEVEL 2: CUT':
             needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5, )
+            suturePoints = [];
             break;
         case 'LEVEL 2: EXTRACT':
+            timeLevel.push(counterTime);
+            counterTime = 0;
             scalpel.returnToBoard(windowWidth / 9 * 2, windowHeight / 10 * 8.5)
+            points = [];
+            deviationMedia(matrix);
+            matrix = [];
             break;
         case 'LEVEL 2: CLOSURE':
+            timeLevel.push(counterTime);
+            counterTime = 0;
             tweezers.returnToBoard(windowWidth / 9 * 7, windowHeight / 10 * 8.5)
             break;
         case 'LEVEL 3: CUT':
+            suturePoints = [];
             needle.returnToBoard(windowWidth / 9 * 4.5, windowHeight / 10 * 8.5, )
             break;
         case 'LEVEL 3: EXTRACT':
@@ -547,7 +625,6 @@ function createStraightLine(pointA, pointB) { //Al cambiar de pantalla (click)
 
     }
     points.push(pointB);
-    console.log(points);
     return xMin
 }
 
@@ -576,29 +653,88 @@ function findCloserPoint(pointA, pointB) { //Mientras se presiona
     }
 }
 
-function validatePrecision(gap) { //Mientras se presiona
-    if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) <= gap && mouseIsPressed && startInteraction) {
-        console.log('BUEN PULSO CRACK!')
-    }
-    if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) > gap && mouseIsPressed && startInteraction) {
-        console.log('NO SIRVES PARA CIRUJANO')
-    }
-}
+// function validatePrecision(gap) { //Mientras se presiona
+//     if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) <= gap && mouseIsPressed && startInteraction) {
+//         console.log('BUEN PULSO CRACK!')
+//     }
+//     if (dist(mouseX, mouseY, nearestPoint.x, nearestPoint.y) > gap && mouseIsPressed && startInteraction) {
+//         console.log('NO SIRVES PARA CIRUJANO')
+//     }
+// }
 
 function getDeviation(points) {
     let deviation;
     let finalPoint = points.length
 
     deviation = dist(nearestPoint.x, nearestPoint.y, mouseX, mouseY) / dist(points[0].x, points[0].y, points[finalPoint - 1].x, points[finalPoint - 1].y);
-    matrix.push(deviation);
+    if (frameCount % 30 === 0 && deviation > 0) {
+        matrix.push(deviation);
+    }
+    //console.log(matrix)
 }
 
 function deviationMedia(matrix) {
-    let media;
+    let media = 0;
     matrix.forEach(element => {
-        media += element;
+        media = media + element;
     });
+    //console.log(media)
     media = media / matrix.length;
 
     deviationArray.push(media);
+    //console.log(deviationArray);
+}
+
+function countDown() {
+    time++;
+    if (time % 60 == 0) {
+        counter--;
+    }
+    textSize(30);
+    noStroke();
+    fill(255);
+    textAlign(LEFT, CENTER)
+    textFont('Laqonic4FUnicase-SemiBold')
+    text(counter, (windowWidth / 9) * 6.8, (windowHeight / 11) * 0.9);
+    if (counter === 0) {
+        interface = 'SCORE'
+    }
+}
+
+function countTimeLevel() {
+    if (frameCount % 60 === 0) {
+        counterTime++
+    }
+}
+
+function gameResult() {
+    let mediaDeviation = 0;
+    deviationArray.forEach(number => {
+        if (number > 0) {
+            mediaDeviation += number;
+        }
+    });
+    mediaDeviation = mediaDeviation / 3;
+
+    if (mediaDeviation > 0 && mediaDeviation < 0.1) {
+        score += 5000
+    } else if (mediaDeviation >= 0.1 && mediaDeviation < 0.3) {
+        score += 3500
+    } else if (mediaDeviation >= 0.3) {
+        score += 1000
+    }
+
+    getPointsLevel();
+}
+
+function getPointsLevel() {
+    timeLevel.forEach(number => {
+        if (number >= 0 && number < 3) {
+            score += 500
+        } else if (number >= 3 && number < 5) {
+            score += 300
+        } else if (number >= 5) {
+            score += 100
+        }
+    });
 }

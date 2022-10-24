@@ -16,4 +16,11 @@ class Tweezers extends Tool {
         this.isCatched = false;
     }
 
+    catched() {
+        if (this.isCatched) {
+            this.x = mouseX
+            this.y = mouseY
+        }
+    }
+
 }

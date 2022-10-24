@@ -22,8 +22,8 @@ class Tool {
 
     catched() {
         if (this.isCatched) {
-            this.x = mouseX
-            this.y = mouseY
+            this.x = mouseX + this.width / 2
+            this.y = mouseY - this.height / 2
         }
     }
 
